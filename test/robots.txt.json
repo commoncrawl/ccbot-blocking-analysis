@@ -1,0 +1,14 @@
+{
+    "boilerplate_cloudflare_preamble": 21,
+    "boilerplate_cloudflare_managed_start": 1,
+    "boilerplate_cloudflare_managed_end": 1,
+    "gptbot_disallow_all": true,
+    "claudebot_disallow_all": true,
+    "google-extended_disallow_all": true,
+    "applebot-extended_disallow_all": true,
+    "amazonbot_disallow_all": true,
+    "bytespider_disallow_all": true,
+    "ccbot_disallow_all": true,
+    "cloudflarebrowserrenderingcrawler_disallow_all": true,
+    "meta-externalagent_disallow_all": true
+}

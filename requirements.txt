@@ -1,0 +1,7 @@
+warcio
+fsspec[s3]
+
+# development
+pytest
+flake8
+pylint
