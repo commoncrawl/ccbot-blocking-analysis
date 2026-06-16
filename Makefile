@@ -59,5 +59,11 @@ sursurvey_robots_txt:
 survey_all_robots_http:
 	cat files_robotstxt | xargs -IFILE python survey_http.py s3://commoncrawl FILE > all_robotstxt.out 2> all_robotstxt_diag.out
 
+survey_all_crawldiagnostics_http:
+	cat files_crawldiagnostics | xargs -IFILE python survey_http.py s3://commoncrawl FILE > all_crawldiagnostics.out 2> all_crawldiagnostics_diag.out
+
+survey_all_warc_http:
+	cat files_warc | xargs -IFILE python survey_http.py s3://commoncrawl FILE > all_crawldiagostics.out 2> all_crawldiagostics_diag.out
+
 survey_all_robots_txt:
 	cat files_robotstxt | xargs -IFILE python survey_robotstxt_txt.py s3://commoncrawl FILE > all_robotstxt_txt.out 2> all_robotstxt_txt_diag.out
