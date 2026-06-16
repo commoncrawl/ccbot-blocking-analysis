@@ -1,5 +1,6 @@
 warcio
 fsspec[s3]
+orjson
 
 # development
 pytest
