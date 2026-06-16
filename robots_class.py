@@ -11,6 +11,14 @@ crawler_names = {
         'slurp',
         'scoutjet',
     ],
+    'IA': [
+        'archive.org_bot',
+        'ia_archiver',
+        'ia_archiver-web.archive.org',
+        'special_archiver',
+        'Zeno',
+        'LAC_IAHarvester',
+    ],
     'ai_training': [
         'gptbot',
         'claudebot',
