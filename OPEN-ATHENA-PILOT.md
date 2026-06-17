@@ -5,10 +5,10 @@
 I revived some code from 2018 that fingerprints webservers.
 
 Jargon: A "quad" is what we call the 4 related hosts of:
-- http://exmaple.com/
-- https://exmaple.com/
-- http://www.exmaple.com/
-- https://www.exmaple.com/
+- http://example.com/
+- https://example.com/
+- http://www.example.com/
+- https://www.example.com/
 
 Since robots.txt is the first thing fetched in the crawl, there are
 often redirects between these 4 things.
