@@ -67,3 +67,9 @@ survey_all_warc_http:
 
 survey_all_robots_txt:
 	cat files_robotstxt | xargs -IFILE python survey_robotstxt_txt.py s3://commoncrawl FILE > all_robotstxt_txt.out 2> all_robotstxt_txt_diag.out
+
+post-robotstxt:
+	python post_robots_http.py all_robotstxt.out
+
+post-robotstxt_txt:
+	python post_robots_http.py all_robotstxt_txt.out
