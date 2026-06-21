@@ -53,3 +53,16 @@ def analyze_http(url, status, ip, http_headers, classifier, verbose=0):
             print(*nm, file=sys.stderr)
 
     return ret
+
+
+def facet_to_kind(classifier, techs, kinds):
+    # given a list of techs, pass back kinds that match kinds
+    conf = classifier.configuration
+    ret = defaultdict(list)
+
+    for tech in techs:
+        ks = conf[tech]['kind']
+        for k in ks:
+            if k in kinds:
+                ret[k].append(tech)
+    return ret

@@ -34,8 +34,11 @@ for warc in sys.argv[start:]:
                 #payload = record.content_stream().read().decode('utf-8', errors='replace')
 
                 ret = http_class.analyze_http(uri, status, ip, http_headers, classifier, verbose=verbose)
+                kinds = http_class.facet_to_kind(classifier, ret, ('Web Application Firewall', 'ADD'))
 
                 out = {'status': status, 'url': uri, 'date': date, 'analysis': ret}
+                if kinds:
+                    out['kinds'] = kinds
 
                 if status in {'301', '302', '303', '307', '308'}:
                     location = record.http_headers.get_header('Location')  # XXX this can fail

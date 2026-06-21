@@ -14,7 +14,8 @@ def make_quad(url):
 
     if host.startswith('www.'):
         # this is a cheat, but we probably don't care about 'www.com'
-        host = host.replace('www.', '', 1)
+        host = '^' + host
+        host = host.replace('^www.', '', 1).replace('^', '')
 
     # keeps the port
     # XXX consider normalizing https plus :443 or http plus :80

@@ -15,6 +15,9 @@ import quad_class
 status = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 outredir = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
+waf_blocked = defaultdict(set)
+waf_not_blocked = defaultdict(set)
+
 with open(sys.argv[1], 'rb', buffering=1024*1024) as f:
     for line in f:
         record = orjson.loads(line)
@@ -25,9 +28,24 @@ with open(sys.argv[1], 'rb', buffering=1024*1024) as f:
         status[quads.quad_host]['status'][record['status']] += 1
         status[quads.quad_host][quads.scheme_host][record['status']] += 1
 
+        # block
         if record['status'].startswith(('4', '5')) and record['status'] not in ('404', '410'):
             status[quads.quad_host]['bad_status']['all'] += 1
+            if 'kinds' in record:
+                # only robotstxt -- not present for robotstxt_txt
+                if 'Web Application Firewall' in record['kinds']:
+                    for k in record['kinds']['Web Application Firewall']:
+                        waf_blocked[k].add(quads.quad_host)
 
+        # not blocked
+        if record['status'] in ('200', '404', '410'):
+            status[quads.quad_host]['good_status']['all'] += 1
+            if 'kinds' in record:
+                if 'Web Application Firewall' in record['kinds']:
+                    for k in record['kinds']['Web Application Firewall']:
+                        waf_not_blocked[k].add(quads.quad_host)
+
+        # redirect
         if 'location' in record:
             location_quads = quad_class.make_quad(record['location'])  # XXX can fail
             # is the location quad host equal to the quad host
@@ -36,6 +54,7 @@ with open(sys.argv[1], 'rb', buffering=1024*1024) as f:
                 status[quads.quad_host]['outredir'][record['location']] += 1
                 #status[quads.quad_host]['outredir']['all'] += 1
 
+        # all records should have this
         if 'analysis' in record:
             # robotstxt
             if any('CloudFlare' in k for k in record['analysis']):
@@ -67,8 +86,6 @@ quads_with_status = {}
 for status_code in ('200', '404', '410'):
     quads_with_status[status_code] = len([True for x in status if status[x]['status'][status_code]])
     print(f'quads with {status_code}: {quads_with_status[status_code]}')
-    for x in status:
-        status[quads.quad_host]['good_status']['all'] += 1
 
 print('quads with outredir', len(outredir))
 
@@ -77,6 +94,9 @@ print('quads with bad status', bad_status)
 
 good_and_bad = len([status[x]['status'][status_code] for x in status if status[x]['bad_status']['all'] and status[x]['good_status']['all']])
 print('quads that are both good and bad', good_and_bad)
+#for x in status:
+#    if status[x]['bad_status']['all'] and status[x]['good_status']['all']:
+#        print(x, status[x])
 
 multiple_outredir = len([True for x in status if len(status[x]['outredir']) > 1])
 print('multiple outredir', multiple_outredir)
@@ -106,7 +126,50 @@ for thing in ('global robots disallow', 'cf global robots disallow',
     foo = sum(status[x].get(thing, False) for x in status)
     print(thing, foo)
 
+all_wafs = set(waf_blocked)
+all_wafs.update(set(waf_not_blocked))
+sum_blocked = 0
+sum_not_blocked = 0
+for waf in sorted(all_wafs):
+    blocked = len(waf_blocked[waf])
+    not_blocked = len(waf_not_blocked[waf])
+    pct = round(100 * blocked / (blocked + not_blocked))
+    print('WAF blocked / not blocked', waf, blocked, '/', not_blocked, '('+str(pct)+'%)')
+    sum_blocked += blocked
+    sum_not_blocked += not_blocked
+pct = round(100 * sum_blocked / (sum_blocked + sum_not_blocked))
+print('WAF blocked / not blocked sums', sum_blocked, '/', sum_not_blocked,'('+str(pct)+'%)')
+
 '''
+robotstxt
+quad count 9757
+quad cloudflare count 1738
+quads with 200: 6638
+quads with 404: 2113
+quads with 410: 5
+quads with outredir 523
+quads with bad status 729
+quads that are both good and bad 115 <====
+multiple outredir 2
+quads with cf bad status 179
+ quads with cf blocked status 162
+WAF blocked / not blocked Amazon Cloudfront bots 6 / 0 (100%)
+WAF blocked / not blocked Azure Front Door 3 / 27 (10%)
+WAF blocked / not blocked BIG-IP Application Security Manager (F5 Networks) 1 / 140 (1%)
+WAF blocked / not blocked Barracuda Load Balancer ADC and WAF 0 / 3 (0%)
+WAF blocked / not blocked CleanTalk 0 / 1 (0%)
+WAF blocked / not blocked CloudFlare-bot 94 / 586 (14%)
+WAF blocked / not blocked CloudProxy WebSite Firewall (Sucuri) 2 / 24 (8%)
+WAF blocked / not blocked DDoS-Guard 2 / 4 (33%)
+WAF blocked / not blocked Ergon Airlock WAF 0 / 1 (0%)
+WAF blocked / not blocked Generic WAF 0 / 21 (0%)
+WAF blocked / not blocked Incapsula 3 / 31 (9%)
+WAF blocked / not blocked QRATOR Labs WAF 1 / 7 (12%)
+WAF blocked / not blocked Stingray Application Firewall (Riverbed / Brocade) 0 / 2 (0%)
+WAF blocked / not blocked Wordfence WordPress Plugins 0 / 1 (0%)
+WAF blocked / not blocked Zenedge Cybersecurity Suite (Oracle) 0 / 2 (0%)
+WAF blocked / not blockd sums 112 850 (12%)
+
 robotstxt
 quad count 9757
 quad cloudflare count 256
