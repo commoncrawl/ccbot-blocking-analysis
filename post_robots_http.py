@@ -18,6 +18,8 @@ outredir = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 waf_blocked = defaultdict(set)
 waf_not_blocked = defaultdict(set)
 
+nowaf_blocked = set()
+
 with open(sys.argv[1], 'rb', buffering=1024*1024) as f:
     for line in f:
         record = orjson.loads(line)
@@ -36,6 +38,8 @@ with open(sys.argv[1], 'rb', buffering=1024*1024) as f:
                 if 'Web Application Firewall' in record['kinds']:
                     for k in record['kinds']['Web Application Firewall']:
                         waf_blocked[k].add(quads.quad_host)
+                else:
+                    nowaf_blocked.add(quads.quad_host)
 
         # not blocked
         if record['status'] in ('200', '404', '410'):
@@ -140,6 +144,9 @@ for waf in sorted(all_wafs):
 pct = round(100 * sum_blocked / (sum_blocked + sum_not_blocked))
 print('WAF blocked / not blocked sums', sum_blocked, '/', sum_not_blocked,'('+str(pct)+'%)')
 
+print('blocked but no visible WAF', len(nowaf_blocked))
+print('  ', '\n  '.join(x for x in nowaf_blocked))
+
 '''
 robotstxt
 quad count 9757
@@ -168,7 +175,9 @@ WAF blocked / not blocked QRATOR Labs WAF 1 / 7 (12%)
 WAF blocked / not blocked Stingray Application Firewall (Riverbed / Brocade) 0 / 2 (0%)
 WAF blocked / not blocked Wordfence WordPress Plugins 0 / 1 (0%)
 WAF blocked / not blocked Zenedge Cybersecurity Suite (Oracle) 0 / 2 (0%)
-WAF blocked / not blockd sums 112 850 (12%)
+WAF blocked / not blocked sums 112 / 850 (12%)
+blocked but no visible WAF 1
+   quad://philsci.com
 
 robotstxt
 quad count 9757
